@@ -134,9 +134,14 @@ function commentClickHandler(event) {
 function addButtonListeners() {
   const main = document.querySelector("main");
   const buttons = main ? main.querySelectorAll("button") : [];
+
   buttons.forEach((button) => {
-    button.addEventListener("click", commentClickHandler);
+    const postId = button?.dataset?.postId;
+    if (postId !== undefined) {
+      button.addEventListener("click", commentClickHandler);
+    }
   });
+
   return buttons;
 }
 
