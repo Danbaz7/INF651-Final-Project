@@ -437,23 +437,25 @@ async function refreshPosts(posts) {
 
 // 19. selectMenuChangeEventHandler
 async function selectMenuChangeEventHandler(event) {
-  // Validate event and target
   if (!event || !event.target) return undefined;
 
-  // Disable the select menu
   const select = event.target;
   select.disabled = true;
 
-  // Parse userId as a number
-  const userId = Number(select.value);
-  const validUserId = Number.isFinite(userId) ? userId : 1;
-  let posts = await getUserPosts(validUserId);
+  const rawValue = select.value;
+  const userId = Number.isFinite(Number(rawValue)) ? Number(rawValue) : 1;
+
+  let posts = await getUserPosts(userId);
   if (!Array.isArray(posts)) posts = [];
-  const filteredPosts = posts.filter(
-    (post) => Number(post.userId) === validUserId
-  );
-  const refreshPostsArray = (await refreshPosts(filteredPosts)) || [];
-  return [validUserId, filteredPosts, refreshPostsArray];
+
+  const filteredPosts = posts.filter((post) => Number(post.userId) === userId);
+
+  let refreshPostsArray = await refreshPosts(filteredPosts);
+  if (!Array.isArray(refreshPostsArray)) refreshPostsArray = [];
+
+  select.disabled = false;
+
+  return [userId, filteredPosts, refreshPostsArray];
 }
 
 // 20. initPage
