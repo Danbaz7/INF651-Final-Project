@@ -120,60 +120,31 @@ function deleteChildElements(parentElement) {
   return parentElement;
 }
 
-// i. Define an empty toggleComments function for now
-function toggleComments(event, postId) {
-  // Placeholder logic — actual implementation already completed earlier
-  return [null, null];
+// // i. Define an empty toggleComments function for now
+// function toggleComments(event, postId) {
+//   // Placeholder logic — actual implementation already completed earlier
+//   return [null, null];
+// }
+
+function commentClickHandler(event) {
+  const postId = event.target?.dataset?.postId;
+  if (postId) toggleComments(event, postId);
 }
 
-// addButtonListeners
 function addButtonListeners() {
-  // a. Select all buttons nested inside the main element
   const main = document.querySelector("main");
   const buttons = main ? main.querySelectorAll("button") : [];
-
-  // b. If buttons exist:
-  if (buttons.length > 0) {
-    // c. Loop through the NodeList of buttons
-    for (const button of buttons) {
-      // d. Get postId from dataset
-      const postId = button?.dataset?.postId;
-
-      // e. If postId exists, add click listener
-      if (postId) {
-        button.addEventListener("click", function (event) {
-          // f/g. Anonymous function calls toggleComments with event and postId
-          toggleComments(event, postId);
-        });
-      }
-    }
-  }
-
-  // h. Return the buttons NodeList
+  buttons.forEach((button) => {
+    button.addEventListener("click", commentClickHandler);
+  });
   return buttons;
 }
 
-// fn7
 function removeButtonListeners() {
-  // a. Select all buttons nested inside the main element
   const buttons = document.querySelectorAll("main button");
-
-  // b. Loop through the NodeList of buttons
   buttons.forEach((button) => {
-    // c. Get the postId from button.dataset.id
-    const postId = button.dataset.id;
-
-    // d. If a postId exists, remove the click event listener
-    if (postId) {
-      // We need to reference the same function signature used in addButtonListeners
-      const handler = function (event) {
-        toggleComments(event, postId);
-      };
-      button.removeEventListener("click", handler);
-    }
+    button.removeEventListener("click", commentClickHandler);
   });
-
-  // f. Return the button elements which were selected
   return buttons;
 }
 
@@ -354,48 +325,31 @@ async function displayComments(postId) {
 
 // 15. createPosts
 async function createPosts(posts) {
-  // c. Return undefined if no posts data is provided
   if (!Array.isArray(posts)) return undefined;
 
-  // d. Create a fragment element
   const fragment = document.createDocumentFragment();
 
-  // e. Loop through the posts data
   for (const post of posts) {
-    // g. Create an article element
     const article = document.createElement("article");
 
-    // h. Create an h2 element with the post title
     const h2 = createElemWithText("h2", post.title);
-
-    // i. Create a p element with the post body
     const bodyPara = createElemWithText("p", post.body);
-
-    // j. Create another p element with text of `Post ID: ${post.id}`
     const idPara = createElemWithText("p", `Post ID: ${post.id}`);
 
-    // k. Await author data
-    const author = await getUser(post.userId);
+    const author = (await getUser(post.userId)) || {};
+    const company = author.company || {};
 
-    // l. Create another p element with author name and company
     const authorPara = createElemWithText(
       "p",
-      `Author: ${author.name} with ${author.company.name}`
+      `Author: ${author.name || "Unknown"} with ${company.name || "Unknown"}`
     );
+    const catchPhrasePara = createElemWithText("p", company.catchPhrase || "");
 
-    // m. Create another p element with the author’s company catch phrase
-    const catchPhrasePara = createElemWithText("p", author.company.catchPhrase);
-
-    // n. Create a button with the text 'Show Comments'
     const button = createElemWithText("button", "Show Comments");
-
-    // o. Set dataset attribute with postId
     button.dataset.postId = post.id;
 
-    // q. Await displayComments for this post
     const section = await displayComments(post.id);
 
-    // p. Append all created elements to the article
     article.append(
       h2,
       bodyPara,
@@ -405,35 +359,31 @@ async function createPosts(posts) {
       button,
       section
     );
-
-    // Append article to fragment
     fragment.appendChild(article);
   }
 
-  // Return the fragment
   return fragment;
 }
 
 // 16. displayPosts
 async function displayPosts(posts) {
-  // d. Select the main element
   const main = document.querySelector("main");
 
-  // e. Define element using ternary
   const element =
-    posts && posts.length > 0
-      ? await createPosts(posts) // i. If posts exist
-      : createElemWithText("p", "Select an Employee to display their posts."); // ii. Default paragraph
+    Array.isArray(posts) && posts.length > 0
+      ? await createPosts(posts)
+      : createElemWithText("p", "Select an Employee to display their posts.");
 
-  // Add default-text class if it's the fallback paragraph
   if (element.tagName === "P") {
     element.classList.add("default-text");
   }
 
-  // f. Append the element to the main element
-  main.appendChild(element);
+  // Only append if main exists
+  if (main instanceof HTMLElement) {
+    main.appendChild(element);
+  }
 
-  // g. Return the element variable
+  // Always return the element (fragment or paragraph)
   return element;
 }
 
@@ -459,7 +409,7 @@ function toggleComments(event, postId) {
 async function refreshPosts(posts) {
   // b. Async function
   // c. Receives posts JSON data
-
+  if (!posts) return undefined;
   // d. Call removeButtonListeners
   const removeButtons = removeButtonListeners();
 
@@ -480,30 +430,6 @@ async function refreshPosts(posts) {
   return [removeButtons, deletedMain, fragment, addButtons];
 }
 
-// 18. refreshPosts
-async function refreshPosts(posts) {
-  // c. Return undefined if no posts data is provided
-  if (!posts) return undefined;
-
-  // d. Call removeButtonListeners
-  const removeButtons = removeButtonListeners();
-
-  // f. Select the main element
-  const main = document.querySelector("main");
-
-  // g. Call deleteChildElements with main
-  const deletedMain = deleteChildElements(main);
-
-  // h. Await displayPosts with posts data
-  const fragment = await displayPosts(posts);
-
-  // j. Call addButtonListeners
-  const addButtons = addButtonListeners();
-
-  // l. Return array of results
-  return [removeButtons, deletedMain, fragment, addButtons];
-}
-
 // 19. selectMenuChangeEventHandler
 async function selectMenuChangeEventHandler(event) {
   // Validate event and target
@@ -514,26 +440,15 @@ async function selectMenuChangeEventHandler(event) {
   select.disabled = true;
 
   // Parse userId as a number
-  const userId = Number(select.value) || 1;
-
-  // Fetch posts
-  let posts = await getUserPosts(userId);
-
-  // Ensure posts is an array and filter by correct userId
+  const userId = Number(select.value);
+  const validUserId = Number.isFinite(userId) ? userId : 1;
+  let posts = await getUserPosts(validUserId);
   if (!Array.isArray(posts)) posts = [];
-  const filteredPosts = posts.filter((post) => Number(post.userId) === userId);
-
-  // Refresh post display
-  let refreshPostsArray = await refreshPosts(filteredPosts);
-
-  // Ensure refreshPostsArray is valid
-  if (!Array.isArray(refreshPostsArray)) refreshPostsArray = [];
-
-  // Re-enable the select menu
-  select.disabled = false;
-
-  // Return validated array
-  return [userId, filteredPosts, refreshPostsArray];
+  const filteredPosts = posts.filter(
+    (post) => Number(post.userId) === validUserId
+  );
+  const refreshPostsArray = (await refreshPosts(filteredPosts)) || [];
+  return [validUserId, filteredPosts, refreshPostsArray];
 }
 
 // 20. initPage
