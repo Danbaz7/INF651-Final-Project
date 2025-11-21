@@ -1,4 +1,4 @@
-# Employee Posts Viewer
+# Employee Posts Viewer [![Netlify Status](https://api.netlify.com/api/v1/badges/5c64baa8-a1db-495f-abe0-ae4d5b4b82b4/deploy-status)](https://app.netlify.com/projects/gregarious-babka-a112af/deploys)
 
 This project is a dynamic JavaScript web application that allows users to select an employee from a dropdown menu and view their associated posts and comments. It demonstrates modular programming, asynchronous data fetching, DOM manipulation, and event-driven UI updates using vanilla JavaScript.
 
